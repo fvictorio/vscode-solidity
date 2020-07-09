@@ -1,4 +1,4 @@
-import * as linter from 'solhint/lib/index';
+import * as linter from 'solhint';
 import { DiagnosticSeverity as Severity, Diagnostic, Range } from 'vscode-languageserver';
 import Linter from './linter';
 import * as fs from 'fs';
@@ -6,7 +6,7 @@ import * as fs from 'fs';
 export default class SolhintService implements Linter {
     private config: ValidationConfig;
 
-    constructor(rootPath: string, rules: any) {
+    constructor(rootPath: string, rules: any, private extensionPath: string) {
         this.config = new ValidationConfig(rootPath, rules);
     }
 
@@ -16,7 +16,9 @@ export default class SolhintService implements Linter {
 
     public validate(filePath: string, documentText: string): Diagnostic[] {
         return linter
-            .processStr(documentText, this.config.build())
+            .processStr(documentText, this.config.build(), {
+                pluginSearchDir: this.extensionPath
+            })
             .messages
             .map(e => this.toDiagnostic(e));
     }
